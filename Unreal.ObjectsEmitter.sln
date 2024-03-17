@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34202.233
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unreal.ObjectsEmitter.Reloaded", "Unreal.ObjectsEmitter.Reloaded\Unreal.ObjectsEmitter.Reloaded.csproj", "{F8E5F1BE-3E2A-4564-BD89-636C9C38D85F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unreal.ObjectsEmitter.Reloaded", "Unreal.ObjectsEmitter.Reloaded\Unreal.ObjectsEmitter.Reloaded.csproj", "{F8E5F1BE-3E2A-4564-BD89-636C9C38D85F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Project.Utils", "submodules\Project.Utils\Project.Utils.csproj", "{6CC6C985-1658-499C-B068-4D29EE2EC673}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unreal.ObjectsEmitter.Interfaces", "Unreal.ObjectsEmitter.Interfaces\Unreal.ObjectsEmitter.Interfaces.csproj", "{693BEBCD-3070-4F20-BF37-43A14EF1AEB8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unreal.ObjectsEmitter.Interfaces", "Unreal.ObjectsEmitter.Interfaces\Unreal.ObjectsEmitter.Interfaces.csproj", "{693BEBCD-3070-4F20-BF37-43A14EF1AEB8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Project.Utils", "submodules\Project.Utils\Project.Utils.csproj", "{71C7F988-7408-456E-B888-F9324D6CF5F5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +19,14 @@ Global
 		{F8E5F1BE-3E2A-4564-BD89-636C9C38D85F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8E5F1BE-3E2A-4564-BD89-636C9C38D85F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8E5F1BE-3E2A-4564-BD89-636C9C38D85F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6CC6C985-1658-499C-B068-4D29EE2EC673}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6CC6C985-1658-499C-B068-4D29EE2EC673}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6CC6C985-1658-499C-B068-4D29EE2EC673}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6CC6C985-1658-499C-B068-4D29EE2EC673}.Release|Any CPU.Build.0 = Release|Any CPU
 		{693BEBCD-3070-4F20-BF37-43A14EF1AEB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{693BEBCD-3070-4F20-BF37-43A14EF1AEB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{693BEBCD-3070-4F20-BF37-43A14EF1AEB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{693BEBCD-3070-4F20-BF37-43A14EF1AEB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71C7F988-7408-456E-B888-F9324D6CF5F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71C7F988-7408-456E-B888-F9324D6CF5F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71C7F988-7408-456E-B888-F9324D6CF5F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71C7F988-7408-456E-B888-F9324D6CF5F5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
