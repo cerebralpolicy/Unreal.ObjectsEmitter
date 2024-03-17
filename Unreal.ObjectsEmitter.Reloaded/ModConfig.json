@@ -1,0 +1,21 @@
+{
+  "ModId": "Unreal.ObjectsEmitter.Reloaded",
+  "ModName": "Unreal Objects Emitter",
+  "ModAuthor": "zutomayofan50",
+  "ModVersion": "1.0.0",
+  "ModDescription": "Emits Unreal objects via an API.",
+  "ModDll": "Unreal.ObjectsEmitter.Reloaded.dll",
+  "ModIcon": "Preview.png",
+  "ModR2RManagedDll32": "x86/Unreal.ObjectsEmitter.Reloaded.dll",
+  "ModR2RManagedDll64": "x64/Unreal.ObjectsEmitter.Reloaded.dll",
+  "ModNativeDll32": "",
+  "ModNativeDll64": "",
+  "IsLibrary": false,
+  "ReleaseMetadataFileName": "Unreal.ObjectsEmitter.Reloaded.ReleaseMetadata.json",
+  "PluginData": {},
+  "IsUniversalMod": false,
+  "ModDependencies": [ "reloaded.sharedlib.hooks", "Reloaded.Memory.SigScan.ReloadedII" ],
+  "OptionalDependencies": [],
+  "SupportedAppId": ["p3r.exe"],
+  "ProjectUrl": ""
+}
