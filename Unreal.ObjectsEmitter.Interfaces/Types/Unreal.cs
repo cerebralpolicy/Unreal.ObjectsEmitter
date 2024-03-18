@@ -171,9 +171,7 @@ public unsafe struct FStringAnsi
     {
         fixed (FStringAnsi* self = &this)
         {
-            // Not entirely sure if FStrings are null terminated,
-            // at least the ones in the name pool...
-            return Marshal.PtrToStringAnsi((nint)self + 2) ?? string.Empty;
+            return Marshal.PtrToStringAnsi((nint)self + 2, this.GetLength()) ?? string.Empty;
         }
     }
 
