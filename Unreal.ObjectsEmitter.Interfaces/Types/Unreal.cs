@@ -106,39 +106,78 @@ public unsafe struct FNamePool
     public string GetString(FName name) => GetString(name.pool_location);
     public string GetString(uint pool_loc)
     {
-        fixed (FNamePool* self = &this)
-        {
-            // Get appropriate pool
-            nint ptr = GetPool(pool_loc >> 0x10); // 0xABB2B - pool 0xA
-                                                  // Go to name entry in pool
-            ptr += (nint)((pool_loc & 0xFFFF) * 2);
-            return ((FString*)ptr)->GetString() ?? string.Empty;
-        }
+        return this.GetFString(pool_loc)->GetString() ?? string.Empty;
     }
 
-    public nint* GetNameStrPtr(uint fnamePoolLoc)
+    public FStringAnsi* GetFString(uint fnamePoolLoc)
     {
         fixed (FNamePool* self = &this)
         {
             // Get appropriate pool
             nint ptr = GetPool(fnamePoolLoc >> 0x10); // 0xABB2B - pool 0xA
-                                                  // Go to name entry in pool
+                                                      // Go to name entry in pool
             ptr += (nint)((fnamePoolLoc & 0xFFFF) * 2);
-            return (nint*)ptr;
+            return (FStringAnsi*)ptr;
+        }
+    }
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public unsafe struct FStringAnsi
+{
+    public const int MAX_LENGTH = 1023;
+
+    // Flags:
+    // bIsWide : 1;
+    // probeHashBits : 5;
+    // Length : 10;
+    // Get Length: flags >> 6
+    public ushort Flags;
+
+    /// <summary>
+    /// Set a new string value.
+    /// Will extend past original length, make sure to not do that.
+    /// </summary>
+    /// <param name="newString">New string.</param>
+    public void SetString(string newString)
+    {
+        if (newString.Length > this.GetLength())
+        {
+            // On caller responsibility to not write more than original length.
+        }
+
+        var flagsMask = 0b111111;
+        var flagsValue = this.Flags & flagsMask;
+
+        // Update length, retain existing flags.
+        this.Flags = (ushort)((newString.Length << 6) | flagsValue);
+
+        var bytes = Encoding.ASCII.GetBytes(newString);
+        fixed (FStringAnsi* self = &this)
+        {
+            var strStart = (nint)self + 2;
+            Marshal.Copy(bytes, 0, strStart, bytes.Length);
         }
     }
 
-    [StructLayout(LayoutKind.Explicit, Size = 0x2)]
-    private unsafe struct FString
+    public static FStringAnsi* Create(string str)
     {
-        // Flags:
-        // bIsWide : 1;
-        // probeHashBits : 5;
-        // Length : 10;
-        // Get Length: flags >> 6
-        [FieldOffset(0x0)] public short flags;
-        public string GetString() { fixed (FString* self = &this) return Marshal.PtrToStringAnsi((nint)(self + 1), flags >> 6); }
+        var pointer = (FStringAnsi*)Marshal.AllocHGlobal(MAX_LENGTH + 2);
+        pointer->SetString(str);
+        return pointer;
     }
+
+    public readonly string GetString()
+    {
+        fixed (FStringAnsi* self = &this)
+        {
+            // Not entirely sure if FStrings are null terminated,
+            // at least the ones in the name pool...
+            return Marshal.PtrToStringAnsi((nint)self + 2) ?? string.Empty;
+        }
+    }
+
+    public readonly int GetLength() => this.Flags >> 6;
 }
 
 [StructLayout(LayoutKind.Sequential, Size = 0x10)]
