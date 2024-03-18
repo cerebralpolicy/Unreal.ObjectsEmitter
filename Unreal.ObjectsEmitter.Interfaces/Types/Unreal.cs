@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using System.Collections;
+using System.Text;
 
 namespace Unreal.ObjectsEmitter.Interfaces.Types;
 
@@ -115,6 +116,19 @@ public unsafe struct FNamePool
         }
     }
 
+    public void SetFName(uint fnamePoolLoc, string newString)
+    {
+        fixed (FNamePool* self = &this)
+        {
+            // Get appropriate pool
+            nint ptr = GetPool(fnamePoolLoc >> 0x10); // 0xABB2B - pool 0xA
+                                                  // Go to name entry in pool
+            ptr += (nint)((fnamePoolLoc & 0xFFFF) * 2);
+            var newStr = new DataTableString(newString);
+            *(nint*)ptr = (nint)(&newStr);
+        }
+    }
+
     [StructLayout(LayoutKind.Explicit, Size = 0x2)]
     private unsafe struct FString
     {
@@ -125,6 +139,63 @@ public unsafe struct FNamePool
         // Get Length: flags >> 6
         [FieldOffset(0x0)] public short flags;
         public string GetString() { fixed (FString* self = &this) return Marshal.PtrToStringAnsi((nint)(self + 1), flags >> 6); }
+    }
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public unsafe struct DataTableString
+{
+    public const int MAX_LENGTH = 1023;
+
+    public DataTableString(string newString)
+    {
+        this.Flags = (1023 << 6) | 32;
+        this.SetString(newString);
+    }
+
+    public ushort Flags;
+
+    public void SetString(string newString)
+    {
+        if (newString.Length > MAX_LENGTH)
+        {
+            return;
+        }
+
+        var flagsMask = 0b111111;
+        var flagsValue = this.Flags & flagsMask;
+        var newLength = newString.Length;
+        var newDtFlags = (ushort)((newLength << 6) | flagsValue);
+        this.Flags = newDtFlags;
+
+        var bytes = Encoding.ASCII.GetBytes(newString);
+        fixed (DataTableString* self = &this)
+        {
+            var strStart = (nint)self + 2;
+            Marshal.Copy(bytes, 0, strStart, bytes.Length);
+        }
+    }
+
+    public string? GetString()
+    {
+        fixed (DataTableString* self = &this)
+        {
+            var strStart = (byte*)self + 2;
+            var length = this.GetLength();
+            var buffer = new byte[length];
+            Marshal.Copy((nint)strStart, buffer, 0, length);
+            return Encoding.ASCII.GetString(buffer);
+        }
+    }
+
+    public readonly int GetLength() => this.Flags >> 6;
+
+    public static DataTableString* Create()
+    {
+        var instance = new DataTableString();
+        var pointer = (DataTableString*)Marshal.AllocHGlobal(MAX_LENGTH + 2);
+        *pointer = instance;
+        return pointer;
     }
 }
 
