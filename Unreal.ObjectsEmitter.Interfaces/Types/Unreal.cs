@@ -124,8 +124,8 @@ public unsafe struct FNamePool
             nint ptr = GetPool(fnamePoolLoc >> 0x10); // 0xABB2B - pool 0xA
                                                   // Go to name entry in pool
             ptr += (nint)((fnamePoolLoc & 0xFFFF) * 2);
-            var newStr = new DataTableString(newString);
-            *(nint*)ptr = (nint)(&newStr);
+            var newStr = DataTableString.Create(newString);
+            *(nint*)ptr = (nint)newStr;
         }
     }
 
@@ -149,7 +149,7 @@ public unsafe struct DataTableString
 
     public DataTableString(string newString)
     {
-        this.Flags = (1023 << 6) | 32;
+        this.Flags = (MAX_LENGTH << 6) | 38;
         this.SetString(newString);
     }
 
@@ -162,16 +162,11 @@ public unsafe struct DataTableString
             return;
         }
 
-        var flagsMask = 0b111111;
-        var flagsValue = this.Flags & flagsMask;
-        var newLength = newString.Length;
-        var newDtFlags = (ushort)((newLength << 6) | flagsValue);
-        this.Flags = newDtFlags;
-
+        this.Flags = (ushort)((newString.Length << 6) | 38);
         var bytes = Encoding.ASCII.GetBytes(newString);
         fixed (DataTableString* self = &this)
         {
-            var strStart = (nint)self + 2;
+            var strStart = (nint)self + 1;
             Marshal.Copy(bytes, 0, strStart, bytes.Length);
         }
     }
@@ -190,9 +185,9 @@ public unsafe struct DataTableString
 
     public readonly int GetLength() => this.Flags >> 6;
 
-    public static DataTableString* Create()
+    public static DataTableString* Create(string str)
     {
-        var instance = new DataTableString();
+        var instance = new DataTableString(str);
         var pointer = (DataTableString*)Marshal.AllocHGlobal(MAX_LENGTH + 2);
         *pointer = instance;
         return pointer;
