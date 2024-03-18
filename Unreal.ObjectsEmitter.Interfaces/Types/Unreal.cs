@@ -116,7 +116,7 @@ public unsafe struct FNamePool
         }
     }
 
-    public void SetFName(uint fnamePoolLoc, string newString)
+    public nint* GetNameStrPtr(uint fnamePoolLoc)
     {
         fixed (FNamePool* self = &this)
         {
@@ -124,8 +124,7 @@ public unsafe struct FNamePool
             nint ptr = GetPool(fnamePoolLoc >> 0x10); // 0xABB2B - pool 0xA
                                                   // Go to name entry in pool
             ptr += (nint)((fnamePoolLoc & 0xFFFF) * 2);
-            var newStr = DataTableString.Create(newString);
-            *(nint*)ptr = (nint)newStr;
+            return (nint*)ptr;
         }
     }
 
@@ -139,58 +138,6 @@ public unsafe struct FNamePool
         // Get Length: flags >> 6
         [FieldOffset(0x0)] public short flags;
         public string GetString() { fixed (FString* self = &this) return Marshal.PtrToStringAnsi((nint)(self + 1), flags >> 6); }
-    }
-}
-
-[StructLayout(LayoutKind.Sequential)]
-public unsafe struct DataTableString
-{
-    public const int MAX_LENGTH = 1023;
-
-    public DataTableString(string newString)
-    {
-        this.Flags = (MAX_LENGTH << 6) | 38;
-        this.SetString(newString);
-    }
-
-    public ushort Flags;
-
-    public void SetString(string newString)
-    {
-        if (newString.Length > MAX_LENGTH)
-        {
-            return;
-        }
-
-        this.Flags = (ushort)((newString.Length << 6) | 38);
-        var bytes = Encoding.ASCII.GetBytes(newString);
-        fixed (DataTableString* self = &this)
-        {
-            var strStart = (nint)self + 1;
-            Marshal.Copy(bytes, 0, strStart, bytes.Length);
-        }
-    }
-
-    public string? GetString()
-    {
-        fixed (DataTableString* self = &this)
-        {
-            var strStart = (byte*)self + 2;
-            var length = this.GetLength();
-            var buffer = new byte[length];
-            Marshal.Copy((nint)strStart, buffer, 0, length);
-            return Encoding.ASCII.GetString(buffer);
-        }
-    }
-
-    public readonly int GetLength() => this.Flags >> 6;
-
-    public static DataTableString* Create(string str)
-    {
-        var instance = new DataTableString(str);
-        var pointer = (DataTableString*)Marshal.AllocHGlobal(MAX_LENGTH + 2);
-        *pointer = instance;
-        return pointer;
     }
 }
 
