@@ -36,5 +36,7 @@ public unsafe interface IUnreal
     /// <param name="newString">New string value.</param>
     void AssignFName(string modName, string fnameString, string newString);
 
+    nint FMalloc(long size, int alignment);
+
     FNamePool* GetPool();
 }

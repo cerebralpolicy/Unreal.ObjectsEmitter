@@ -12,6 +12,10 @@ internal unsafe class UnrealService : IUnreal
     private delegate FName* FName_ctor(FName* name, nint str, EFindName findTyp);
     private IHook<FName_ctor>? fname;
 
+    [Function(CallingConventions.Microsoft)]
+    private delegate nint FMemory_Malloc(long size, int alignment);
+    private FMemory_Malloc? fmalloc;
+
     private readonly Dictionary<string, string> fnameAssigns = new();
     private FNamePool* g_namePool;
 
@@ -35,6 +39,11 @@ internal unsafe class UnrealService : IUnreal
             {
                 this.fname = hooks.CreateHook<FName_ctor>(this.FName, result).Activate();
             });
+
+        ScanHooks.Add(
+            nameof(FMemory_Malloc),
+            "48 89 5C 24 ?? 57 48 83 EC 20 48 8B F9 8B DA 48 8B 0D ?? ?? ?? ?? 48 85 C9",
+            (hooks, result) => this.fmalloc = hooks.CreateWrapper<FMemory_Malloc>(result, out _));
     }
 
     public void AssignFName(string modName, string fnameString, string newString)
@@ -45,10 +54,13 @@ internal unsafe class UnrealService : IUnreal
 
     public FName* FName(string str, EFindName findType = EFindName.FName_Add)
     {
-        var fname = (FName*)Marshal.AllocHGlobal(8);
+        //var fname = (FName*)Marshal.AllocHGlobal(8);
+        var fname = (FName*)this.fmalloc!(8, 16);
         var strPtr = StringsCache.GetStringPtrUni(str);
         return this.FName(fname, strPtr, findType);
     }
+
+    public nint FMalloc(long size, int alignment) => this.fmalloc!(size, alignment);
 
     public FName* FName(FName* name, nint str, EFindName findType)
     {
