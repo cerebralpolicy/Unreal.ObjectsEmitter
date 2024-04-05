@@ -48,6 +48,12 @@ internal unsafe class UnrealService : IUnreal
 
     public void AssignFName(string modName, string fnameString, string newString)
     {
+        if (fnameString == newString)
+        {
+            Log.Error($"Attempted to redirect FName to itself. This is considered an error and should be fixed. Mod: {modName} || String: {newString}");
+            return;
+        }
+
         this.fnameAssigns[fnameString] = newString;
         Log.Debug($"Assigned FName: {fnameString}\nMod: {modName} || New: {newString}");
     }
