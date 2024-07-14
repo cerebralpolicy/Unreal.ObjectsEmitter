@@ -63,7 +63,7 @@ internal unsafe class UnrealService : IUnreal
         //var fname = (FName*)Marshal.AllocHGlobal(8);
         var fname = (FName*)this.fmalloc!(8, 16);
         var strPtr = StringsCache.GetStringPtrUni(str);
-        return this.FName(fname, strPtr, findType);
+        return this.fname!.OriginalFunction(fname, strPtr, findType);
     }
 
     public nint FMalloc(long size, int alignment) => this.fmalloc!(size, alignment);
