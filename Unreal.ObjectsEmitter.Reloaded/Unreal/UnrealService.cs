@@ -47,6 +47,8 @@ internal unsafe class UnrealService : IUnreal
             (hooks, result) => this.fmalloc = hooks.CreateWrapper<FMemory_Malloc>(result, out _));
     }
 
+    public nint FMalloc(long size, int alignment) => this.fmalloc!(size, alignment);
+
     public void AssignFName(string modName, string fnameString, string newString)
     {
         if (fnameString == newString)
@@ -67,8 +69,6 @@ internal unsafe class UnrealService : IUnreal
         this.fnameCache[str] = (nint)fname;
         return fname;
     }
-
-    public nint FMalloc(long size, int alignment) => this.fmalloc!(size, alignment);
 
     public FName* FName(FName* name, nint str, EFindName findType)
     {
