@@ -1,6 +1,7 @@
 ﻿using Reloaded.Hooks.ReloadedII.Interfaces;
 using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
+using System.Diagnostics;
 using System.Drawing;
 using Unreal.ObjectsEmitter.Interfaces;
 using Unreal.ObjectsEmitter.Reloaded.Configuration;
@@ -36,6 +37,10 @@ public class Mod : ModBase, IExports
 
         Log.Initialize("UE.Obj.Emitter", this.log, Color.Aquamarine);
         Log.LogLevel = this.config.LogLevel;
+
+#if DEBUG
+        Debugger.Launch();
+#endif
 
         this.unreal = new();
         this.dataTables = new(this.unreal);

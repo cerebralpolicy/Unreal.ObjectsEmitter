@@ -17,6 +17,7 @@ internal unsafe class UnrealService : IUnreal
     private FMemory_Malloc? fmalloc;
 
     private readonly Dictionary<string, string> fnameAssigns = new();
+    private readonly Dictionary<string, nint> fnameCache = new();
     private FNamePool* g_namePool;
 
     public UnrealService()
@@ -60,10 +61,11 @@ internal unsafe class UnrealService : IUnreal
 
     public FName* FName(string str, EFindName findType = EFindName.FName_Add)
     {
-        //var fname = (FName*)Marshal.AllocHGlobal(8);
         var fname = (FName*)this.fmalloc!(8, 16);
         var strPtr = StringsCache.GetStringPtrUni(str);
-        return this.fname!.OriginalFunction(fname, strPtr, findType);
+        this.fname!.OriginalFunction(fname, strPtr, findType);
+        this.fnameCache[str] = (nint)fname;
+        return fname;
     }
 
     public nint FMalloc(long size, int alignment) => this.fmalloc!(size, alignment);
@@ -74,7 +76,18 @@ internal unsafe class UnrealService : IUnreal
 
         if (!string.IsNullOrEmpty(nameString) && this.fnameAssigns.TryGetValue(nameString, out var newString))
         {
-            *name = *this.FName(newString);
+            // Honestly not sure why there's a bug here or why we have to manually
+            // reuse previous FNames, when creating a FName should do that auomatically. Very weird.
+            // I can't even move this code into FName(str), what???
+            // Bug: str1 -> str2 || str2 -> str1 || str1 no longer works as expected.
+            if (this.fnameCache.TryGetValue(nameString, out var cachedFname))
+            {
+                *name = *(FName*)cachedFname;
+            }
+            else
+            {
+                *name = *this.FName(newString);
+            }
         }
         else
         {
