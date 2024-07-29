@@ -1,5 +1,6 @@
 ﻿using Reloaded.Hooks.Definitions;
 using Reloaded.Hooks.Definitions.X64;
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using Unreal.ObjectsEmitter.Interfaces;
 using Unreal.ObjectsEmitter.Interfaces.Types;
@@ -17,7 +18,7 @@ internal unsafe class UnrealService : IUnreal
     private FMemory_Malloc? fmalloc;
 
     private readonly Dictionary<string, string> fnameAssigns = new();
-    private readonly Dictionary<string, nint> fnameCache = new();
+    private readonly ConcurrentDictionary<string, nint> fnameCache = new();
     private FNamePool* g_namePool;
 
     public UnrealService()
