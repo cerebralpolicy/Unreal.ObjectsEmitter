@@ -2,7 +2,7 @@
   "ModId": "Unreal.ObjectsEmitter.Reloaded",
   "ModName": "Unreal Objects Emitter",
   "ModAuthor": "zutomayofan50",
-  "ModVersion": "1.1.3",
+  "ModVersion": "1.1.4",
   "ModDescription": "Emits Unreal objects via an API.",
   "ModDll": "Unreal.ObjectsEmitter.Reloaded.dll",
   "ModIcon": "Preview.png",

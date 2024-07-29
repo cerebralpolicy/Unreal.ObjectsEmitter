@@ -1,6 +1,5 @@
 ﻿using Reloaded.Hooks.Definitions;
 using Reloaded.Hooks.Definitions.X64;
-using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using Unreal.ObjectsEmitter.Interfaces;
 using Unreal.ObjectsEmitter.Interfaces.Types;
@@ -18,7 +17,6 @@ internal unsafe class UnrealService : IUnreal
     private FMemory_Malloc? fmalloc;
 
     private readonly Dictionary<string, string> fnameAssigns = new();
-    private readonly ConcurrentDictionary<string, nint> fnameCache = new();
     private FNamePool* g_namePool;
 
     public UnrealService()
@@ -48,8 +46,6 @@ internal unsafe class UnrealService : IUnreal
             (hooks, result) => this.fmalloc = hooks.CreateWrapper<FMemory_Malloc>(result, out _));
     }
 
-    public nint FMalloc(long size, int alignment) => this.fmalloc!(size, alignment);
-
     public void AssignFName(string modName, string fnameString, string newString)
     {
         if (fnameString == newString)
@@ -64,12 +60,13 @@ internal unsafe class UnrealService : IUnreal
 
     public FName* FName(string str, EFindName findType = EFindName.FName_Add)
     {
+        //var fname = (FName*)Marshal.AllocHGlobal(8);
         var fname = (FName*)this.fmalloc!(8, 16);
         var strPtr = StringsCache.GetStringPtrUni(str);
-        this.fname!.OriginalFunction(fname, strPtr, findType);
-        this.fnameCache[str] = (nint)fname;
-        return fname;
+        return this.fname!.OriginalFunction(fname, strPtr, findType);
     }
+
+    public nint FMalloc(long size, int alignment) => this.fmalloc!(size, alignment);
 
     public FName* FName(FName* name, nint str, EFindName findType)
     {
@@ -77,18 +74,7 @@ internal unsafe class UnrealService : IUnreal
 
         if (!string.IsNullOrEmpty(nameString) && this.fnameAssigns.TryGetValue(nameString, out var newString))
         {
-            // Honestly not sure why there's a bug here or why we have to manually
-            // reuse previous FNames, when creating a FName should do that auomatically. Very weird.
-            // I can't even move this code into FName(str), what???
-            // Bug: str1 -> str2 || str2 -> str1 || str1 no longer works as expected.
-            if (this.fnameCache.TryGetValue(nameString, out var cachedFname))
-            {
-                *name = *(FName*)cachedFname;
-            }
-            else
-            {
-                *name = *this.FName(newString);
-            }
+            *name = *this.FName(newString);
         }
         else
         {
