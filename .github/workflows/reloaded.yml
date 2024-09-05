@@ -94,7 +94,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: interfaces
-        path: /*.nupkg
+        path: ./*.nupkg
 
     - name: Upload GitHub Release Artifact
       uses: actions/upload-artifact@v4
