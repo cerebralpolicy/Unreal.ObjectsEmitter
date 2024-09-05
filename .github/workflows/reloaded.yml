@@ -88,12 +88,23 @@ jobs:
       run: Copy-Item -Force -Path "${{ env.PROJECT_DIR }}/Publish/*" -Destination "./Publish" -Recurse
 
     - name: Build Interfaces
-      run: dotnet pack ${{ env.INTERFACES_DIR }} -c Release --output .
+      run: |
+        if ($env:IS_RELEASE -eq 'true') {
+            dotnet build ${{ env.INTERFACES_DIR }} /p:Version=$RELEASE_TAG
+            dotnet pack ${{ env.INTERFACES_DIR }} -c Release --no-build --output .
+        }
+        else {
+            dotnet pack ${{ env.INTERFACES_DIR }} -c Release --output .
+        }
 
-    - name: Upload Interfaces
+    - name: Push Interfaces to Nuget
+      if: env.IS_RELEASE == 'true'
+      run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+
+    - name: Upload Interfaces Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: interfaces
+        name: Interfaces
         path: ./*.nupkg
 
     - name: Upload GitHub Release Artifact
