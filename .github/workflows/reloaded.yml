@@ -37,7 +37,8 @@ env:
   
   IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/') }}
   RELEASE_TAG: ${{ github.ref_name }}
-  PROJECT_DIR: ./Unreal.ObjectsEmitter.Reloaded
+  PROJECT_DIR: Unreal.ObjectsEmitter.Reloaded
+  INTERFACES_DIR: Unreal.ObjectsEmitter.Interfaces
 
 jobs:
   build:
@@ -86,8 +87,14 @@ jobs:
     - name: Copy Build
       run: Copy-Item -Force -Path "${{ env.PROJECT_DIR }}/Publish/*" -Destination "./Publish" -Recurse
 
-    - name: Build Nuget Package
-      run: dotnet pack -c Release --no-build --output .
+    - name: Build Interfaces
+      run: dotnet pack ${{ env.INTERFACES_DIR }} -c Release --output .
+
+    - name: Upload Interfaces
+      uses: actions/upload-artifact@v4
+      with:
+        name: interfaces
+        path: /*.nupkg
 
     - name: Upload GitHub Release Artifact
       uses: actions/upload-artifact@v4
@@ -115,12 +122,6 @@ jobs:
         # A file, directory or wildcard pattern that describes what to upload
         path: ${{ env.PUBLISH_CHANGELOG_PATH }}
         retention-days: 0
-
-    - name: Upload Interfaces Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Interfaces
-        path: /*.nupkg
 
   github_release:
     needs: build
