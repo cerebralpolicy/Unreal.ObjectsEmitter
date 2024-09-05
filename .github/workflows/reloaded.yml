@@ -86,8 +86,11 @@ jobs:
     - name: Copy Build
       run: Copy-Item -Force -Path "${{ env.PROJECT_DIR }}/Publish/*" -Destination "./Publish" -Recurse
 
+    - name: Build Nuget Package
+      run: dotnet pack -c Release --no-build --output .
+
     - name: Upload GitHub Release Artifact
-      uses: actions/upload-artifact@v2.2.4
+      uses: actions/upload-artifact@v4
       with:
         # Artifact name
         name: GitHub Release
@@ -96,7 +99,7 @@ jobs:
           ${{ env.PUBLISH_GITHUB_PATH }}/*
           
     - name: Upload GameBanana Release Artifact
-      uses: actions/upload-artifact@v2.2.4
+      uses: actions/upload-artifact@v4
       with:
         # Artifact name
         name: GameBanana Release
@@ -105,7 +108,7 @@ jobs:
           ${{ env.PUBLISH_GAMEBANANA_PATH }}/*
 
     - name: Upload Changelog Artifact
-      uses: actions/upload-artifact@v2.2.4
+      uses: actions/upload-artifact@v4
       with:
         # Artifact name
         name: Changelog
@@ -113,21 +116,30 @@ jobs:
         path: ${{ env.PUBLISH_CHANGELOG_PATH }}
         retention-days: 0
 
+    - name: Upload Interfaces Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Interfaces
+        path: *.nupkg
+
   github_release:
     needs: build
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: write
+
     steps:
     - name: Get changelog
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: Changelog
+
     - name: Get release
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: GitHub Release
         path: release
+
     - name: Upload to GitHub Releases (on Tag)
       uses: softprops/action-gh-release@v0.1.14
       if: env.IS_RELEASE == 'true'
