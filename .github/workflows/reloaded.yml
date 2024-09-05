@@ -91,7 +91,7 @@ jobs:
       run: |
         if ($env:IS_RELEASE -eq 'true') {
             dotnet publish ${{ env.INTERFACES_DIR }} -c Release /p:Version=$env:RELEASE_TAG
-            dotnet pack ${{ env.INTERFACES_DIR }} -c Release --no-build --output .
+            dotnet pack ${{ env.INTERFACES_DIR }} -c Release /p:Version=$env:RELEASE_TAG --no-build --output .
         }
         else {
             dotnet pack ${{ env.INTERFACES_DIR }} -c Release --output .
