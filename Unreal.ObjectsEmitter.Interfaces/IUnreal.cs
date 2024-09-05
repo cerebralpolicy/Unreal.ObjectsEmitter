@@ -21,6 +21,13 @@ public unsafe interface IUnreal
     string GetName(FName* name);
 
     /// <summary>
+    /// Get the string of the given <see cref="FName"/>.
+    /// </summary>
+    /// <param name="name">FName instance.</param>
+    /// <returns><see cref="FName"/> string value.</returns>
+    string GetName(FName name);
+
+    /// <summary>
     /// Get the string of the name at the given location in name pool.
     /// </summary>
     /// <param name="poolLoc">Location in name pool.</param>
