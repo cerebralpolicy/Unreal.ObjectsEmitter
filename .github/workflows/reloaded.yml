@@ -90,7 +90,7 @@ jobs:
     - name: Build Interfaces
       run: |
         if ($env:IS_RELEASE -eq 'true') {
-            dotnet publish ${{ env.INTERFACES_DIR }} /p:Version=$env:RELEASE_TAG
+            dotnet publish ${{ env.INTERFACES_DIR }} -c Release /p:Version=$env:RELEASE_TAG
             dotnet pack ${{ env.INTERFACES_DIR }} -c Release --no-build --output .
         }
         else {
