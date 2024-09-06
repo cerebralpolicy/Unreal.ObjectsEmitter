@@ -1,4 +1,8 @@
-﻿namespace Unreal.ObjectsEmitter.Interfaces.Types;
+﻿using System.Collections;
+using System.Data;
+using System.Diagnostics.CodeAnalysis;
+
+namespace Unreal.ObjectsEmitter.Interfaces.Types;
 
 /// <summary>
 /// DataTable instance with pointer rows.
@@ -65,7 +69,7 @@ public unsafe class Row
 /// DataTable instance with typed row pointers.
 /// </summary>
 /// <typeparam name="TRow">Row type.</typeparam>
-public unsafe class DataTable<TRow>
+public unsafe class DataTable<TRow> : IDictionary<string, TRow>
     where TRow : unmanaged
 {
     /// <summary>
@@ -79,6 +83,13 @@ public unsafe class DataTable<TRow>
         this.Name = name;
         this.Self = obj;
         this.Rows = rows;
+    }
+
+    /// <inheritdoc/>
+    public TRow this[string key]
+    {
+        get => *this.Rows.First(x => x.Name == key).Self;
+        set => *this.Rows.First(x => x.Name == key).Self = value;
     }
 
     /// <summary>
@@ -95,6 +106,82 @@ public unsafe class DataTable<TRow>
     /// Gets table rows.
     /// </summary>
     public Row<TRow>[] Rows { get; }
+
+    /// <inheritdoc/>
+    public ICollection<string> Keys => this.Rows.Select(x => x.Name).ToArray();
+
+    /// <inheritdoc/>
+    public ICollection<TRow> Values => this.Rows.Select(x => *x.Self).ToArray();
+
+    /// <inheritdoc/>
+    public int Count => this.Rows.Count();
+
+    /// <inheritdoc/>
+    public bool IsReadOnly { get; } = true;
+
+    /// <inheritdoc/>
+    public void Add(string key, TRow value)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public void Add(KeyValuePair<string, TRow> item)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public void Clear()
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public bool Contains(KeyValuePair<string, TRow> item)
+        => this.Rows.FirstOrDefault(x => x.Name == item.Key && (*x.Self).Equals(item.Value)) != null;
+
+    /// <inheritdoc/>
+    public bool ContainsKey(string key) => this.Rows.FirstOrDefault(x => x.Name == key) != null;
+
+    /// <inheritdoc/>
+    public void CopyTo(KeyValuePair<string, TRow>[] array, int arrayIndex)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public IEnumerator<KeyValuePair<string, TRow>> GetEnumerator()
+        => this.Rows.Select(x => new KeyValuePair<string, TRow>(x.Name, *x.Self)).GetEnumerator();
+
+    /// <inheritdoc/>
+    public bool Remove(string key)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public bool Remove(KeyValuePair<string, TRow> item)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public bool TryGetValue(string key, [MaybeNullWhen(false)] out TRow value)
+    {
+        var row = this.Rows.FirstOrDefault(x => x.Name == key);
+        if (row == null)
+        {
+            value = default;
+            return false;
+        }
+
+        value = *row.Self;
+        return true;
+    }
+
+    /// <inheritdoc/>
+    IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 }
 
 /// <summary>
