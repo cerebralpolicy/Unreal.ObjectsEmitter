@@ -3,9 +3,11 @@
   <PropertyGroup>
     <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+	<Nullable>enable</Nullable>
+	<Version>1.1.7</Version>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RepositoryUrl>https://github.com/RyoTune/Unreal.ObjectsEmitter</RepositoryUrl>
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
 </Project>
