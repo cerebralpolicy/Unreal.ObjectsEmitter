@@ -46,6 +46,20 @@ internal unsafe class DataTablesService : IDataTables
     public void FindDataTable(string tableName, Action<DataTable> found)
         => this.tableListeners.Add(new(tableName, found));
 
+    public void FindDataTable<TRow>(string tableName, Action<DataTable<TRow>> found)
+        where TRow : unmanaged
+    {
+        // Create listener that converts normal DataTable to
+        // DataTable<TRow> and invokes found func.
+        var listener = new TableListener(tableName, dt =>
+        {
+            var typedRows = dt.Rows.Select(x => new Row<TRow>(x.Name, (TRow*)x.Self)).ToArray();
+            found.Invoke(new DataTable<TRow>(dt.Name, dt.Self, typedRows));
+        });
+
+        this.tableListeners.Add(listener);
+    }
+
     public Action<DataTable>? DataTableFound { get; set; }
 
     public bool TryGetDataTable(string tableName, [NotNullWhen(true)] out DataTable? dataTable)
