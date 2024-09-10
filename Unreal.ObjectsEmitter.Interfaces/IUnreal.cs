@@ -45,5 +45,7 @@ public unsafe interface IUnreal
 
     nint FMalloc(long size, int alignment);
 
+    FString FString(string str);
+
     FNamePool* GetPool();
 }

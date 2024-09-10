@@ -34,11 +34,19 @@ public unsafe struct FString
 {
     TArray<char> Data; // characters are either ANSICHAR or WIDECHAR depending on platform. See definition in Core\Public\HAL\Platform.h
 
+    [Obsolete("Use FString(string) from IUnreal for FMalloc'd strings.")]
     public FString(string str)
     {
         Data.Max = str.Length + 1;
         Data.Num = Data.Max;
         Data.AllocatorInstance = (char*)Marshal.StringToHGlobalUni(str);
+    }
+
+    public FString(IUnreal unreal, string str)
+    {
+        Data.Max = str.Length + 1;
+        Data.Num = Data.Max;
+        Data.AllocatorInstance = (char*)unreal.FMalloc(Data.Max, 0);
     }
 
     public readonly override string ToString()

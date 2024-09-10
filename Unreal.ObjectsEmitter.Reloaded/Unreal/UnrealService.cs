@@ -113,4 +113,6 @@ internal unsafe class UnrealService : IUnreal
     {
         return (nuint)(*(int*)ptrAddress + ptrAddress + 4);
     }
+
+    public FString FString(string str) => new(this, str);
 }
