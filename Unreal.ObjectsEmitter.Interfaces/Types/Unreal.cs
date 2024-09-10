@@ -46,7 +46,10 @@ public unsafe struct FString
     {
         Data.Max = str.Length + 1;
         Data.Num = Data.Max;
-        Data.AllocatorInstance = (char*)unreal.FMalloc(Data.Max, 0);
+        Data.AllocatorInstance = (char*)unreal.FMalloc(Data.Max * sizeof(char), 0);
+
+        var bytes = Encoding.Unicode.GetBytes(str + '\0');
+        Marshal.Copy(bytes, 0, (nint)Data.AllocatorInstance, bytes.Length);
     }
 
     public readonly override string ToString()
