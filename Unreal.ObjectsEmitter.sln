@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unreal.ObjectsEmitter.Reloa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unreal.ObjectsEmitter.Interfaces", "Unreal.ObjectsEmitter.Interfaces\Unreal.ObjectsEmitter.Interfaces.csproj", "{693BEBCD-3070-4F20-BF37-43A14EF1AEB8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Project.Utils", "submodules\Project.Utils\Project.Utils.csproj", "{71C7F988-7408-456E-B888-F9324D6CF5F5}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{693BEBCD-3070-4F20-BF37-43A14EF1AEB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{693BEBCD-3070-4F20-BF37-43A14EF1AEB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{693BEBCD-3070-4F20-BF37-43A14EF1AEB8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{71C7F988-7408-456E-B888-F9324D6CF5F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{71C7F988-7408-456E-B888-F9324D6CF5F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{71C7F988-7408-456E-B888-F9324D6CF5F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{71C7F988-7408-456E-B888-F9324D6CF5F5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

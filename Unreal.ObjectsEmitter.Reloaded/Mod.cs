@@ -1,8 +1,6 @@
 ﻿using Reloaded.Hooks.ReloadedII.Interfaces;
 using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
-using System.Diagnostics;
-using System.Drawing;
 using Unreal.ObjectsEmitter.Interfaces;
 using Unreal.ObjectsEmitter.Reloaded.Configuration;
 using Unreal.ObjectsEmitter.Reloaded.DataTables;
@@ -35,7 +33,7 @@ public class Mod : ModBase, IExports
         this.config = context.Configuration;
         this.modConfig = context.ModConfig;
 
-        Log.Initialize("UE.Obj.Emitter", this.log, Color.Aquamarine);
+        Project.Init(this.modConfig, this.modLoader, this.log);
         Log.LogLevel = this.config.LogLevel;
 
 #if DEBUG
@@ -52,7 +50,7 @@ public class Mod : ModBase, IExports
 
         this.ApplyConfig();
         this.modLoader.GetController<IStartupScanner>().TryGetTarget(out var scanner);
-        ScanHooks.Initialize(scanner!, this.hooks);
+        Project.Start();
     }
 
     private void ApplyConfig()
