@@ -42,6 +42,12 @@ public unsafe interface IUnreal
     /// <param name="fnameString">String value of FName to set.</param>
     /// <param name="newString">New string value.</param>
     void AssignFName(string modName, string fnameString, string newString);
+    /// <summary>
+    /// Reverts an assigned FName to its original string value.
+    /// </summary>
+    /// <param name="modName">Mod name.</param>
+    /// <param name="fnameString">String value of FName to reset.</param>
+    void UnassignFName(string modName, string fnameString);
 
     nint FMalloc(long size, int alignment);
 

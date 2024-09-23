@@ -1,6 +1,7 @@
 ﻿using Reloaded.Hooks.Definitions;
 using Reloaded.Hooks.Definitions.X64;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Unreal.ObjectsEmitter.Interfaces;
 using Unreal.ObjectsEmitter.Interfaces.Types;
@@ -17,7 +18,8 @@ internal unsafe class UnrealService : IUnreal
     private delegate nint FMemory_Malloc(long size, int alignment);
     private FMemory_Malloc? fmalloc;
 
-    private readonly Dictionary<string, string> fnameAssigns = new();
+    private readonly AssignmentList fnameAssigns = new();
+    private readonly Dictionary<string, string> fnameDict = new();
     private readonly ConcurrentDictionary<string, nint> fnameCache = new();
     private FNamePool* g_namePool;
 
@@ -58,8 +60,23 @@ internal unsafe class UnrealService : IUnreal
             return;
         }
 
-        this.fnameAssigns[fnameString] = newString;
+//      this.fnameDict[fnameString] = newString;
+        this.fnameAssigns.TryAddRedirect(fnameString, newString, this);
         Log.Debug($"Assigned FName: {fnameString}\nMod: {modName} || New: {newString}");
+    }
+
+    public void UnassignFName(string modName, string fnameString)
+    {
+        this.fnameAssigns.TryGetRedirectFor(fnameString, out var redirect);
+        if (redirect == null)
+        {
+            return;
+        }
+        var info = redirect.Value;
+        var newString = info.Assign.Name;
+        this.fnameAssigns.TryRemoveRedirectFor(fnameString); //
+        this.fnameCache.TryRemove(fnameString, out var prevAddress);
+        Log.Debug($"Reverted FName: {fnameString}\nMod: {modName} || Previous: {newString} ({prevAddress})");
     }
 
     public FName* FName(string str, EFindName findType = EFindName.FName_Add)
@@ -75,7 +92,7 @@ internal unsafe class UnrealService : IUnreal
     {
         var nameString = Marshal.PtrToStringUni(str) ?? string.Empty;
 
-        if (!string.IsNullOrEmpty(nameString) && this.fnameAssigns.TryGetValue(nameString, out var newString))
+        if (!string.IsNullOrEmpty(nameString) && this.fnameAssigns.TryGetRedirect(nameString, out var newString))
         {
             // Honestly not sure why there's a bug here or why we have to manually
             // reuse previous FNames, when creating a FName should do that auomatically. Very weird.
@@ -115,4 +132,180 @@ internal unsafe class UnrealService : IUnreal
     }
 
     public FString FString(string str) => new(this, str);
+
+    // CEREBRAL'S FNAME REVERSION
+    public class AssignmentList : List<FNameAssign>
+    {
+        public bool TryAddRedirect(string originalName, string newName, IUnreal unreal)
+        {
+            if (ContainsRedirectFor(originalName)) // If the asset has already been redirected
+            {
+                this[originalName] = new(originalName, newName, unreal);
+                return false; // No redirect has been added
+            }
+            Add(new(originalName, newName, unreal));
+            return true; /// A redirect has been added
+        }
+
+        public bool TryGetRedirect(string originalName, [NotNullWhen(true)] out string? redirectName)
+        {
+            if (ContainsRedirectFor(originalName))
+            {
+                redirectName = Find(x => x.Original.Name == originalName).Assign.Name;
+                return true;
+            }
+            redirectName = null;
+            return false;
+        }
+
+        public FNameAssign this[string originalName]
+        {
+            get
+            {
+                TryGetRedirectFor(originalName, out var redirect);
+                if (redirect == null)
+                    throw new NullReferenceException(nameof(redirect));
+                return redirect.Value;
+            }
+            set
+            {
+                TryGetRedirectFor(originalName, out var newRedirect);
+                if (newRedirect == null)
+                {
+                    Add(value);
+                    return;
+                }
+                int index = IndexOf(newRedirect.Value);
+                this[index] = value;
+                return;
+            }
+        }
+        public bool ContainsRedirectFor(string originalName)
+            => Exists(x => x.Original.Name == originalName);
+        public bool ContainsRedirectTo(string newName)
+            => Exists(x => x.Assign.Name == newName);
+        public bool TryGetRedirectFor(string originalName, [NotNullWhen(true)] out FNameAssign? redirect)
+        {
+            redirect = null;
+            if (ContainsRedirectFor(originalName))
+            {
+                redirect = Find(x => x.Original.Name == originalName);
+                return true;
+            }
+            return false;
+        }
+        public bool TryGetRedirectTo(string newName, [NotNullWhen(true)] out FNameAssign? redirect)
+        {
+            redirect = null;
+            if (ContainsRedirectTo(newName))
+            {
+                redirect = Find(x => x.Assign.Name == newName);
+                return true;
+            }
+            return false;
+        }
+        public bool TryRemoveRedirectFor(string originalName)
+        {
+            var canRemove = TryGetRedirectFor(originalName, out var redirect);
+            if (canRemove && redirect.HasValue)
+            {
+                Remove(redirect.Value);
+                return true;
+            }
+            return false;
+        }
+        public bool TryRemoveRedirectTo(string newName)
+        {
+            var canRemove = TryGetRedirectTo(newName, out var redirect);
+            if (canRemove && redirect.HasValue)
+            {
+                Remove(redirect.Value);
+                return true;
+            }
+            return false;
+
+        }
+    }
+
+    public readonly struct FNameAssign : IEquatable<FNameAssign>
+    {
+        public FNameWrapper Original { get; init; }
+        public FNameWrapper Assign { get; init; }
+
+        public FNameAssign(string name, string assignment, IUnreal unreal)
+        {
+            Original = new(name, unreal);
+            Assign = new(assignment, unreal);
+        }
+        public class FNameWrapper : IEquatable<FNameWrapper?>
+        {
+            public FName* Self { get; init; }
+            public string Name { get; init; }
+            public nint Pointer { get; init; }
+            public FNameWrapper(string name, IUnreal unreal)
+            {
+                this.Name = name;
+                this.Self = unreal.FName(name); // Automatically malloc
+                this.Pointer = StringsCache.GetStringPtrUni(name);
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return Equals(obj as FNameWrapper);
+            }
+
+            public bool Equals(FNameWrapper? other)
+            {
+                return other is not null &&
+                       Pointer.Equals(other.Pointer);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(Pointer);
+            }
+
+            public static bool operator ==(FNameWrapper? left, FNameWrapper? right)
+            {
+                return EqualityComparer<FNameWrapper>.Default.Equals(left, right);
+            }
+
+            public static bool operator !=(FNameWrapper? left, FNameWrapper? right)
+            {
+                return !(left == right);
+            }
+        }
+
+
+        public override string? ToString()
+        {
+            return Original.Name;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is FNameAssign assign && Equals(assign);
+        }
+
+        public bool Equals(FNameAssign other)
+        {
+            return EqualityComparer<FNameWrapper>.Default.Equals(Original, other.Original) &&
+                   EqualityComparer<FNameWrapper>.Default.Equals(Assign, other.Assign);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Original, Assign);
+        }
+
+        public static bool operator ==(FNameAssign left, FNameAssign right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(FNameAssign left, FNameAssign right)
+        {
+            return !(left == right);
+        }
+    }
 }
